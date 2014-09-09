@@ -77,7 +77,7 @@ public class OesSMListener implements Runnable {
             osw.flush();
             
             //calling OES SM
-            String result=runSM("principal1", "resource1", "action1");
+            String result=runSM("principal1", "/resource1", "action1");
 
             
         } catch (Exception e) {
