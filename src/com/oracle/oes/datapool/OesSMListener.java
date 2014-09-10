@@ -59,25 +59,38 @@ public class OesSMListener implements Runnable {
             while ((character = isr.read()) != 13) {
                 process.append((char)character);
             }
-            System.out.println(process);
+            System.out.println("DAEMON TRACE: Process = " + process);
             //need to wait 10 seconds to pretend that we're processing something
             try {
                 Thread.sleep(1000);
             } catch (Exception e) {
             }
+            
             TimeStamp = new java.util.Date().toString();
-            String returnCode =
-                "OesSMListener repsonded at " + TimeStamp + (char)13;
+            
+            //calling OES SM
+            String OESresult=Boolean.toString(true);
+            //OESresult = runSM("principal1", "/resource1", "action1");
+            
+            String returnCode;
+            
+            if (process.toString().equalsIgnoreCase("trueuser"))
+                OESresult="true";
+            else
+                OESresult="false";
+            
+            returnCode = OESresult + (char)13;
+            
             BufferedOutputStream os =
                 new BufferedOutputStream(connection.getOutputStream());
             OutputStreamWriter osw = new OutputStreamWriter(os, "US-ASCII");
-            System.out.println(returnCode);
+            System.out.println("* DAEMON TRACE: returnCode = " + returnCode);
             
             osw.write(returnCode);
             osw.flush();
             
             //calling OES SM
-            String result=runSM("principal1", "/resource1", "action1");
+            //String result=runSM("principal1", "/resource1", "action1");
 
             
         } catch (Exception e) {
