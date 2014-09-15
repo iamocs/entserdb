@@ -55,7 +55,8 @@ public class OesSMListener implements Runnable {
         String databaseSchema = null;
         String databaseTable = null;
         String action = null;
-        String resourceType = "DatabaseObject";
+        String resourceType = null;
+        String recurso = null;
         boolean inputParameterError = false;
         
         try {
@@ -71,14 +72,29 @@ public class OesSMListener implements Runnable {
             String[] inputData = process.toString().split("#");
             
             if ((inputData == null) || 
-                    (inputData.length != 5)){
+                    (inputData.length != 6)){
                 inputParameterError = true;
             } else {
                 userId = inputData[0];
                 database = inputData[1];
-                databaseSchema = inputData[2];
-                databaseTable = inputData[3];
-                action = inputData [4];
+                resourceType = inputData[2];
+                databaseSchema = inputData[3];
+                databaseTable = inputData[4];
+                action = inputData [5];
+                
+                if (database.compareToIgnoreCase("empty") == 0){
+                    inputParameterError = true;
+                } else if (resourceType.compareToIgnoreCase("empty") == 0){
+                    inputParameterError = true;
+                } else if (databaseSchema.compareToIgnoreCase("empty") == 0){
+                    inputParameterError = true;
+                } else if (action.compareToIgnoreCase("empty") == 0){
+                    inputParameterError = true;
+                } else if (databaseTable.compareToIgnoreCase("empty") == 0){
+                    recurso = database+"/"+resourceType+"/"+databaseSchema+"/"+databaseTable;
+                } else {
+                    recurso = database+"/"+resourceType+"/"+databaseSchema;
+                }
             }
             
             TimeStamp = new java.util.Date().toString();
@@ -87,7 +103,7 @@ public class OesSMListener implements Runnable {
             String OESresult=Boolean.toString(false);
             
             if (!inputParameterError){
-                OESresult = runSM(userId, database+"/"+resourceType+"/"+databaseSchema+"/"+databaseTable, action);
+                OESresult = runSM(userId, recurso, action);
             }
             
             String returnCode;
