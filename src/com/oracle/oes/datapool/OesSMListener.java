@@ -53,6 +53,15 @@ public class OesSMListener implements Runnable {
     }
 
     public void run() {
+        String userId = null;
+        String database = null;
+        String databaseSchema = null;
+        String databaseTable = null;
+        String action = null;
+        String resourceType = null;
+        String recurso = null;
+        boolean inputParameterError = false;
+        
         try {
             BufferedInputStream is =
                 new BufferedInputStream(connection.getInputStream());
@@ -63,17 +72,42 @@ public class OesSMListener implements Runnable {
                 process.append((char)character);
             }
             System.out.println("DAEMON TRACE: Process = " + process);
-            //need to wait 10 seconds to pretend that we're processing something
-            try {
-                Thread.sleep(1000);
-            } catch (Exception e) {
+            String[] inputData = process.toString().split("#");
+            
+            if ((inputData == null) || 
+                    (inputData.length != 6)){
+                inputParameterError = true;
+            } else {
+                userId = inputData[0];
+                database = inputData[1];
+                resourceType = inputData[2];
+                databaseSchema = inputData[3];
+                databaseTable = inputData[4];
+                action = inputData [5];
+                
+                if (database.compareToIgnoreCase("empty") == 0){
+                    inputParameterError = true;
+                } else if (resourceType.compareToIgnoreCase("empty") == 0){
+                    inputParameterError = true;
+                } else if (databaseSchema.compareToIgnoreCase("empty") == 0){
+                    inputParameterError = true;
+                } else if (action.compareToIgnoreCase("empty") == 0){
+                    inputParameterError = true;
+                } else if (databaseTable.compareToIgnoreCase("empty") == 0){
+                    recurso = database+"/"+resourceType+"/"+databaseSchema;
+                } else {
+                    recurso = database+"/"+resourceType+"/"+databaseSchema+"/"+databaseTable;
+                }
             }
             
             TimeStamp = new java.util.Date().toString();
             
             //calling OES SM
-            String OESresult=Boolean.toString(true);
-            //OESresult = runSM("principal1", "/resource1", "action1");
+            String OESresult=Boolean.toString(false);
+            
+            if (!inputParameterError){
+                OESresult = runSM(userId, recurso, action);
+            }
             
             String returnCode;
             
@@ -91,11 +125,7 @@ public class OesSMListener implements Runnable {
             
             osw.write(returnCode);
             osw.flush();
-            
-            //calling OES SM
-            //String result=runSM("principal1", "/resource1", "action1");
 
-            
         } catch (Exception e) {
             System.out.println(e);
         } finally {
@@ -106,7 +136,7 @@ public class OesSMListener implements Runnable {
         }
     }
     
-    String runSM(String principal, String resource, String Action){
+    String runSM(String principal, String resource, String action){
         String res = "false";
         Principal p = new WLSUserImpl(principal);
         
@@ -121,11 +151,11 @@ public class OesSMListener implements Runnable {
                         = PepRequestFactoryImpl.getPepRequestFactory()
                         .newPepRequest(
                                 user,
-                                Action,
+                                action,
                                 resource,
                                 null).decide();
 
-                System.out.println("***** Request: {" + p + ", " + Action + ", "
+                System.out.println("***** Request: {" + p + ", " + action + ", "
                         + resource
                         + "} \nResult: " + response.allowed());
                 
