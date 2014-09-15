@@ -104,12 +104,11 @@ public class OesSMListener implements Runnable {
     }
     
     String runSM(String principal, String resource, String Action){
+        String res = "false";
         Principal p = new WLSUserImpl(principal);
         
         Subject user = new Subject();
         user.getPrincipals().add(p);     
-        
-        String action = "write";
 
         // Environmental/Context attributes
         while (true) {
@@ -119,27 +118,23 @@ public class OesSMListener implements Runnable {
                         = PepRequestFactoryImpl.getPepRequestFactory()
                         .newPepRequest(
                                 user,
-                                action,
+                                Action,
                                 resource,
                                 null).decide();
 
-                System.out.println("***** Request: {" + p + ", " + action + ", "
+                System.out.println("***** Request: {" + p + ", " + Action + ", "
                         + resource
                         + "} \nResult: " + response.allowed());
+                
+                res = String.valueOf(response.allowed());
 
             } catch (PepException e) {
                 System.out.println("***** Caught exception: "
                         + e.getMessage());
                 e.printStackTrace();
-                System.exit(1);
+                return "false";
             }
-
-            System.out.println("sleeping 5 sec. Hit Ctrl-C to quit\n");
-
-            try {
-                Thread.currentThread().sleep(5000);
-            } catch (Exception e) {
-            }
+            return res;
         }
     }
 }
