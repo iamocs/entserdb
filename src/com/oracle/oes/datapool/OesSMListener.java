@@ -156,7 +156,7 @@ public class OesSMListener implements Runnable {
                         + resource
                         + "} \nResult: " + response.allowed());
                 
-                res = String.valueOf(response.allowed());
+                res = ""+response.allowed();
 
             } catch (PepException e) {
                 System.out.println("***** Caught exception: "
