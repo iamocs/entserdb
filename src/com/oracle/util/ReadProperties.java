@@ -29,7 +29,7 @@ public class ReadProperties {
         prop.load(inputStream);
         
         if (inputStream == null) {
-            throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
+            throw new FileNotFoundException("property file '" + propertiesFileName + "' not found in the classpath");
         }
         
         return prop;

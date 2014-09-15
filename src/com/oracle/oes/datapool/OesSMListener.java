@@ -50,6 +50,14 @@ public class OesSMListener implements Runnable {
     }
 
     public void run() {
+        String userId = null;
+        String database = null;
+        String databaseSchema = null;
+        String databaseTable = null;
+        String action = null;
+        String resourceType = "DatabaseObject";
+        boolean inputParameterError = false;
+        
         try {
             BufferedInputStream is =
                 new BufferedInputStream(connection.getInputStream());
@@ -60,17 +68,27 @@ public class OesSMListener implements Runnable {
                 process.append((char)character);
             }
             System.out.println("DAEMON TRACE: Process = " + process);
-            //need to wait 10 seconds to pretend that we're processing something
-            try {
-                Thread.sleep(1000);
-            } catch (Exception e) {
+            String[] inputData = process.toString().split("#");
+            
+            if ((inputData == null) || 
+                    (inputData.length != 5)){
+                inputParameterError = true;
+            } else {
+                userId = inputData[0];
+                database = inputData[1];
+                databaseSchema = inputData[2];
+                databaseTable = inputData[3];
+                action = inputData [4];
             }
             
             TimeStamp = new java.util.Date().toString();
             
             //calling OES SM
-            String OESresult=Boolean.toString(true);
-            //OESresult = runSM("principal1", "/resource1", "action1");
+            String OESresult=Boolean.toString(false);
+            
+            if (!inputParameterError){
+                OESresult = runSM(userId, database+"/"+resourceType+"/"+databaseSchema+"/"+databaseTable, action);
+            }
             
             String returnCode;
             
@@ -88,11 +106,7 @@ public class OesSMListener implements Runnable {
             
             osw.write(returnCode);
             osw.flush();
-            
-            //calling OES SM
-            //String result=runSM("principal1", "/resource1", "action1");
 
-            
         } catch (Exception e) {
             System.out.println(e);
         } finally {
@@ -103,7 +117,7 @@ public class OesSMListener implements Runnable {
         }
     }
     
-    String runSM(String principal, String resource, String Action){
+    String runSM(String principal, String resource, String action){
         String res = "false";
         Principal p = new WLSUserImpl(principal);
         
@@ -118,11 +132,11 @@ public class OesSMListener implements Runnable {
                         = PepRequestFactoryImpl.getPepRequestFactory()
                         .newPepRequest(
                                 user,
-                                Action,
+                                action,
                                 resource,
                                 null).decide();
 
-                System.out.println("***** Request: {" + p + ", " + Action + ", "
+                System.out.println("***** Request: {" + p + ", " + action + ", "
                         + resource
                         + "} \nResult: " + response.allowed());
                 
