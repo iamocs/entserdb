@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.oracle.oes.datapool;
 
 import com.bea.security.*;
@@ -20,6 +19,7 @@ import weblogic.security.principal.*;
 
 /**
  * A simple socket server
+ *
  * @author faheem
  *
  */
@@ -30,20 +30,25 @@ public class OesSMListener implements Runnable {
     private int ID;
 
     public static void main(String[] args) {
-        ReadPropertiesOESDaemon rProp=new ReadPropertiesOESDaemon();
-        
-        int port = 19999;
-        int count = 0;
-        try {
-            ServerSocket socket1 = new ServerSocket(port);
-            System.out.println("OesSMListener Initialized");
-            while (true) {
-                Socket connection = socket1.accept();
-                Runnable runnable = new OesSMListener(connection, ++count);
-                Thread thread = new Thread(runnable);
-                thread.start();
+        ReadPropertiesOESDaemon prop = new ReadPropertiesOESDaemon();
+
+        if (Boolean.getBoolean(prop.getMode())) {
+            String OESresult = runSM(prop.getPrincipal(), prop.getResource(), prop.getResource());
+        } else {
+
+            int port = Integer.getInteger(prop.getConnPort());
+            int count = 0;
+            try {
+                ServerSocket socket1 = new ServerSocket(port);
+                System.out.println("OesSMListener Initialized");
+                while (true) {
+                    Socket connection = socket1.accept();
+                    Runnable runnable = new OesSMListener(connection, ++count);
+                    Thread thread = new Thread(runnable);
+                    thread.start();
+                }
+            } catch (Exception e) {
             }
-        } catch (Exception e) {
         }
     }
 
@@ -61,21 +66,21 @@ public class OesSMListener implements Runnable {
         String resourceType = null;
         String recurso = null;
         boolean inputParameterError = false;
-        
+
         try {
-            BufferedInputStream is =
-                new BufferedInputStream(connection.getInputStream());
+            BufferedInputStream is
+                    = new BufferedInputStream(connection.getInputStream());
             InputStreamReader isr = new InputStreamReader(is);
             int character;
             StringBuffer process = new StringBuffer();
             while ((character = isr.read()) != 13) {
-                process.append((char)character);
+                process.append((char) character);
             }
             System.out.println("DAEMON TRACE: Process = " + process);
             String[] inputData = process.toString().split("#");
-            
-            if ((inputData == null) || 
-                    (inputData.length != 6)){
+
+            if ((inputData == null)
+                    || (inputData.length != 6)) {
                 inputParameterError = true;
             } else {
                 userId = inputData[0];
@@ -83,46 +88,47 @@ public class OesSMListener implements Runnable {
                 resourceType = inputData[2];
                 databaseSchema = inputData[3];
                 databaseTable = inputData[4];
-                action = inputData [5];
-                
-                if (database.compareToIgnoreCase("empty") == 0){
+                action = inputData[5];
+
+                if (database.compareToIgnoreCase("empty") == 0) {
                     inputParameterError = true;
-                } else if (resourceType.compareToIgnoreCase("empty") == 0){
+                } else if (resourceType.compareToIgnoreCase("empty") == 0) {
                     inputParameterError = true;
-                } else if (databaseSchema.compareToIgnoreCase("empty") == 0){
+                } else if (databaseSchema.compareToIgnoreCase("empty") == 0) {
                     inputParameterError = true;
-                } else if (action.compareToIgnoreCase("empty") == 0){
+                } else if (action.compareToIgnoreCase("empty") == 0) {
                     inputParameterError = true;
-                } else if (databaseTable.compareToIgnoreCase("empty") == 0){
-                    recurso = database+"/"+resourceType+"/"+databaseSchema;
+                } else if (databaseTable.compareToIgnoreCase("empty") == 0) {
+                    recurso = database + "/" + resourceType + "/" + databaseSchema;
                 } else {
-                    recurso = database+"/"+resourceType+"/"+databaseSchema+"/"+databaseTable;
+                    recurso = database + "/" + resourceType + "/" + databaseSchema + "/" + databaseTable;
                 }
             }
-            
+
             TimeStamp = new java.util.Date().toString();
-            
+
             //calling OES SM
-            String OESresult=Boolean.toString(false);
-            
-            if (!inputParameterError){
+            String OESresult = Boolean.toString(false);
+
+            if (!inputParameterError) {
                 OESresult = runSM(userId, recurso, action);
             }
-            
+
             String returnCode;
-            
-            if (process.toString().equalsIgnoreCase("trueuser"))
-                OESresult="true";
-            else
-                OESresult="false";
-            
-            returnCode = OESresult + (char)13;
-            
-            BufferedOutputStream os =
-                new BufferedOutputStream(connection.getOutputStream());
+
+            if (process.toString().equalsIgnoreCase("trueuser")) {
+                OESresult = "true";
+            } else {
+                OESresult = "false";
+            }
+
+            returnCode = OESresult + (char) 13;
+
+            BufferedOutputStream os
+                    = new BufferedOutputStream(connection.getOutputStream());
             OutputStreamWriter osw = new OutputStreamWriter(os, "US-ASCII");
             System.out.println("* DAEMON TRACE: returnCode = " + returnCode);
-            
+
             osw.write(returnCode);
             osw.flush();
 
@@ -135,13 +141,13 @@ public class OesSMListener implements Runnable {
             }
         }
     }
-    
-    String runSM(String principal, String resource, String action){
+
+    static String runSM(String principal, String resource, String action) {
         String res = "false";
         Principal p = new WLSUserImpl(principal);
-        
+
         Subject user = new Subject();
-        user.getPrincipals().add(p);     
+        user.getPrincipals().add(p);
 
         // Environmental/Context attributes
         while (true) {
@@ -158,7 +164,7 @@ public class OesSMListener implements Runnable {
                 System.out.println("***** Request: {" + p + ", " + action + ", "
                         + resource
                         + "} \nResult: " + response.allowed());
-                
+
                 res = String.valueOf(response.allowed());
 
             } catch (PepException e) {
