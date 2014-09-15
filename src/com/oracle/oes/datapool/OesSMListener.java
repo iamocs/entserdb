@@ -91,9 +91,9 @@ public class OesSMListener implements Runnable {
                 } else if (action.compareToIgnoreCase("empty") == 0){
                     inputParameterError = true;
                 } else if (databaseTable.compareToIgnoreCase("empty") == 0){
-                    recurso = database+"/"+resourceType+"/"+databaseSchema+"/"+databaseTable;
-                } else {
                     recurso = database+"/"+resourceType+"/"+databaseSchema;
+                } else {
+                    recurso = database+"/"+resourceType+"/"+databaseSchema+"/"+databaseTable;
                 }
             }
             
