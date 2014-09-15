@@ -6,16 +6,17 @@
 
 package com.oracle.oes.datapool;
 
-import java.net.*;
+import com.bea.security.*;
+import com.oracle.util.ReadPropertiesOESDaemon;
 import java.io.*;
+import java.net.*;
+import java.security.*;
 import java.util.*;
 
-import com.bea.security.*;
-import weblogic.security.principal.*;
 import javax.security.auth.*;
-import java.security.*;
 import oracle.security.jps.openaz.pep.*;
 import org.openliberty.openaz.azapi.pep.*;
+import weblogic.security.principal.*;
 
 /**
  * A simple socket server
@@ -29,6 +30,8 @@ public class OesSMListener implements Runnable {
     private int ID;
 
     public static void main(String[] args) {
+        ReadPropertiesOESDaemon rProp=new ReadPropertiesOESDaemon();
+        
         int port = 19999;
         int count = 0;
         try {
