@@ -61,7 +61,7 @@ public class OesSMListener implements Runnable {
         }
     }
 
-    OesSMListener(Socket s, int i, ReadProperties properties) {
+    OesSMListener(Socket s, int i) {
         this.connection = s;
         this.ID = i;
     }
