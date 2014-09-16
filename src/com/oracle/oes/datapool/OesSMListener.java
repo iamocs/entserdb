@@ -40,7 +40,7 @@ public class OesSMListener implements Runnable {
             System.out.println("# Inicio del servicio OES Listener en modo Prueba (sin levantar el listener)...");
             OesSMListener oesListener = new OesSMListener();
             String OESresult = oesListener.runSM(prop.getPrincipal(), prop.getResource(), prop.getAction());
-            System.out.println("Respuesta de la evaluación: " + OESresult);
+            System.out.println("# Respuesta de la evaluación: " + OESresult);
         } else {
 
             port = Integer.getInteger(prop.getConnPort());
