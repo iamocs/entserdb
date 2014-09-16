@@ -6,6 +6,7 @@
 package com.oracle.oes.datapool;
 
 import com.bea.security.*;
+import com.oracle.util.ReadProperties;
 import com.oracle.util.ReadPropertiesOESDaemon;
 import java.io.*;
 import java.net.*;
@@ -28,16 +29,22 @@ public class OesSMListener implements Runnable {
     private Socket connection;
     private String TimeStamp;
     private int ID;
+    private ReadProperties properties;
 
     public static void main(String[] args) {
         ReadPropertiesOESDaemon prop = new ReadPropertiesOESDaemon();
+        int port = 19999;
+        int count = 0;
 
         if (Boolean.getBoolean(prop.getMode())) {
-            String OESresult = runSM(prop.getPrincipal(), prop.getResource(), prop.getResource());
+            System.out.println("# Inicio del servicio OES Listener en modo Prueba (sin levantar el listener)...");
+            OesSMListener oesListener = new OesSMListener();
+            String OESresult = oesListener.runSM(prop.getPrincipal(), prop.getResource(), prop.getAction());
+            System.out.println("Respuesta de la evaluación: " + OESresult);
         } else {
 
-            int port = Integer.getInteger(prop.getConnPort());
-            int count = 0;
+            port = Integer.getInteger(prop.getConnPort());
+            count = 0;
             try {
                 ServerSocket socket1 = new ServerSocket(port);
                 System.out.println("OesSMListener Initialized");
@@ -48,6 +55,7 @@ public class OesSMListener implements Runnable {
                     thread.start();
                 }
             } catch (Exception e) {
+
             }
         }
     }
@@ -55,6 +63,9 @@ public class OesSMListener implements Runnable {
     OesSMListener(Socket s, int i) {
         this.connection = s;
         this.ID = i;
+    }
+
+    OesSMListener() {
     }
 
     public void run() {
@@ -66,6 +77,7 @@ public class OesSMListener implements Runnable {
         String resourceType = null;
         String recurso = null;
         boolean inputParameterError = false;
+        String returnCode;
 
         try {
             BufferedInputStream is
@@ -114,14 +126,14 @@ public class OesSMListener implements Runnable {
                 OESresult = runSM(userId, recurso, action);
             }
 
-            String returnCode;
-
+            /*
             if (process.toString().equalsIgnoreCase("trueuser")) {
                 OESresult = "true";
             } else {
                 OESresult = "false";
             }
-
+            */
+            
             returnCode = OESresult + (char) 13;
 
             BufferedOutputStream os
@@ -142,7 +154,7 @@ public class OesSMListener implements Runnable {
         }
     }
 
-    static String runSM(String principal, String resource, String action) {
+    String runSM(String principal, String resource, String action) {
         String res = "false";
         Principal p = new WLSUserImpl(principal);
 
@@ -165,7 +177,7 @@ public class OesSMListener implements Runnable {
                         + resource
                         + "} \nResult: " + response.allowed());
 
-                res = String.valueOf(response.allowed());
+                res = "" + response.allowed();
 
             } catch (PepException e) {
                 System.out.println("***** Caught exception: "
