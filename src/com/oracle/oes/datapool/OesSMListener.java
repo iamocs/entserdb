@@ -17,6 +17,7 @@ import javax.security.auth.*;
 import oracle.security.jps.openaz.pep.*;
 import org.openliberty.openaz.azapi.pep.*;
 import weblogic.security.principal.*;
+import com.oracle.util.ReadProperties;
 
 /**
  * A simple socket server
